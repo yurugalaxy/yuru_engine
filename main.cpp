@@ -18,9 +18,18 @@
 
 constexpr unsigned int Screen_Width { 640 };
 constexpr unsigned int Screen_Height { 480 };
+
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+bool firstMouse = true;
+float yaw = -90.0f;
+float pitch = 0.0f;
+float lastX = Screen_Width / 2.0f;
+float lastY = Screen_Height / 2.0f;
+float fov = 45.0f;
+
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
@@ -44,7 +53,31 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
   glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* window, double xPos, double yPos);
+void mouse_callback(GLFWwindow* window, const double xPos, const double yPos)
+{
+  float xOffset = xPos - lastX;
+  float yOffset = lastY - yPos; // Reversed because Y is from bottom to top
+  lastX = xPos;
+  lastY = yPos;
+
+  const float sensitivity = 0.1f;
+  xOffset *= sensitivity;
+  yOffset *= sensitivity;
+
+  yaw += xOffset;
+  pitch += yOffset;
+
+  if (pitch > 89.0f)
+    pitch = 89.0f;
+  if (pitch < -89.0f)
+    pitch = -89.0f;
+
+  glm::vec3 front;
+  front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+  front.y = sin(glm::radians(pitch));
+  front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+  cameraFront = glm::normalize(front);
+}
 
 struct SpritePosition
 {
@@ -53,12 +86,6 @@ struct SpritePosition
   float bottomY;
   float topY;
 };
-
-// struct Quad
-// {
-//   float vertices[];
-//   float indices[];
-// };
 
 SpritePosition loadSprite(const float x, const float y, const float spriteSize, const float sheetWidth, const float sheetHeight)
 {
@@ -170,15 +197,6 @@ int main()
   Shader tempShader("../shaders/vertShader.vert","../shaders/fragShader.frag");
   tempShader.use();
 
-  // GLfloat quad[]
-  // {
-  //   //Vertices              //Texture coordinates
-  //   -0.9f, -0.9f,  0.0f,    grass.leftX,   grass.bottomY,  //Bottom left
-  //    0.9f, -0.9f,  0.0f,    grass.rightX,  grass.bottomY,  //Bottom right
-  //   -0.9f,  0.9f,  0.0f,    grass.leftX,   grass.topY,     //Top left
-  //    0.9f,  0.9f,  0.0f,    grass.rightX,  grass.topY      //Top right
-  // };
-
   GLfloat cube[]
   {
     -0.5f, -0.5f, -0.5f,  grass.leftX,  grass.bottomY,
@@ -251,7 +269,6 @@ int main()
   //Generate each buffer, &reference if only 1, else array
   glGenVertexArrays(1, &vertexArrayObjectVAO);
   glGenBuffers(1, &vertexBufferObjectVBO);
-  glGenBuffers(1, &elementBufferObjectEBO);
 
   // Bind the VAO for use with all subsequent VBOs
   glBindVertexArray(vertexArrayObjectVAO);
@@ -259,9 +276,6 @@ int main()
   // Copy vertices into the VBO
   glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjectVBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferObjectEBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
   // Enable the right array (used in "layout location = X" in the vertex shader)
   glEnableVertexAttribArray(0);
@@ -272,7 +286,7 @@ int main()
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
 
   /******************************
-   * Main loop
+   * Game loop
    ******************************/
 
   while (!glfwWindowShouldClose(window))
@@ -286,10 +300,8 @@ int main()
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
 
-    /******************************
-     * Matrices
-     ******************************/
 
+    //Matrices
     auto model = glm::mat4(1.0f);
     auto projection = glm::mat4(1.0f);
 
@@ -298,9 +310,10 @@ int main()
     glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
     tempShader.setMat4("view", view);
 
-    projection = glm::perspective(glm::radians(45.0f), 640.0f / 480.0f,0.1f, 100.0f);
+    projection = glm::perspective(glm::radians(fov), 640.0f / 480.0f,0.1f, 100.0f);
     tempShader.setMat4("projection", projection);
 
+    // Draw cubes
     for (unsigned int i { 0 }; i < 10; ++i)
     {
       model = glm::mat4(1.0f);

@@ -46,6 +46,8 @@ void processInput(GLFWwindow* window)
     cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+  //For an FPS style camera, clamp the y to 0
+  // cameraPos.y = 0.0f;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -60,7 +62,7 @@ void mouse_callback(GLFWwindow* window, const double xPos, const double yPos)
   lastX = xPos;
   lastY = yPos;
 
-  const float sensitivity = 0.1f;
+  constexpr float sensitivity = 0.1f;
   xOffset *= sensitivity;
   yOffset *= sensitivity;
 
@@ -184,8 +186,6 @@ int main()
    ******************************/
 
   glActiveTexture(GL_TEXTURE0);
-  // loadSpriteSheet("../resources/player.png");
-  // SpritePosition player = loadSprite(0, 0, 16.0f, 16.0f, 16.0f);
   loadSpriteSheet("../resources/tilemap_packed.png");
   SpritePosition grass = loadSprite(7, 7, 16.0f, 192.0f, 176.0f);
 
@@ -194,8 +194,8 @@ int main()
    ******************************/
 
   //Generate a shader program
-  Shader tempShader("../shaders/vertShader.vert","../shaders/fragShader.frag");
-  tempShader.use();
+  Shader defaultShader("../shaders/vertShader.vert","../shaders/fragShader.frag");
+  defaultShader.use();
 
   GLfloat cube[]
   {
@@ -261,7 +261,7 @@ int main()
     1, 3, 2
   };
 
-  tempShader.setFloat("playerTex", 1);
+  defaultShader.setFloat("playerTex", 1);
 
   //     // VBO - for triangles // VAO - holds VBOs   //EBO - for multiple triangles that share vertices
   GLuint vertexBufferObjectVBO, vertexArrayObjectVAO, elementBufferObjectEBO;
@@ -308,10 +308,13 @@ int main()
     float currTime = glfwGetTime();
 
     glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-    tempShader.setMat4("view", view);
+    defaultShader.setMat4("view", view);
 
     projection = glm::perspective(glm::radians(fov), 640.0f / 480.0f,0.1f, 100.0f);
-    tempShader.setMat4("projection", projection);
+    // Ortho projection needs to be really small since all objects are in -1.0 - 1.0 space
+    // We should also really disable the z buffer to avoid z fighting when using ortho
+    // projection = glm::ortho(-2.0f, 2.0f, 2.0f, -2.0f, -1000.0f, 1000.0f);
+    defaultShader.setMat4("projection", projection);
 
     // Draw cubes
     for (unsigned int i { 0 }; i < 10; ++i)
@@ -319,7 +322,7 @@ int main()
       model = glm::mat4(1.0f);
       model = glm::translate(model, cubePositions[i]);
       model = glm::rotate(model, currTime * glm::radians(60.0f) * i + 1, glm::vec3(1.0f, 0.5f, 0.0f));
-      tempShader.setMat4("model", model);
+      defaultShader.setMat4("model", model);
 
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }

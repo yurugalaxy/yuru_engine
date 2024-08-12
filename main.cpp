@@ -2,7 +2,7 @@
 #include <cmath>
 
 //Main GL
-#include "lib/glad/glad.h"
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 // Matrices and vector transforms
@@ -12,7 +12,7 @@
 
 // For GL image loading
 #define STB_IMAGE_IMPLEMENTATION
-#include "lib/stb_image/stb_image.h"
+#include <stb_image/stb_image.h>
 
 #include "shader.hpp"
 

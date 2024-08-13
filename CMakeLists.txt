@@ -16,7 +16,6 @@ set(SOURCES
         shader_opengl.cpp
         renderer.cpp
         camera_flycam.cpp
-        camera_flycam.hpp
 )
 
 set(IMGUI_SOURCES

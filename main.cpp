@@ -134,6 +134,7 @@ int main()
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
   /******************************
    * Create GLFW window
@@ -178,15 +179,18 @@ int main()
 
   glActiveTexture(GL_TEXTURE0);
   loadSpriteSheet("../resources/tilemap_packed.png");
-  SpritePosition grass = loadSprite(7, 7, 16.0f, 192.0f, 176.0f);
+  // SpritePosition grass = loadSprite(7, 7, 16.0f, 192.0f, 176.0f);
   SpritePosition dirt = loadSprite(3, 7, 16.0f, 192.0f, 176.0f);
 
   /******************************
    * Vertex and fragment loading
    ******************************/
 
+  SpritePosition grass = loadSprite(7, 7, 16.0f, 192.0f, 176.0f);
   Yuru::OpenGLShader defaultShader("../shaders/vertShader.vert","../shaders/fragShader.frag");
   defaultShader.use();
+
+  float size { 1.0f };
 
   GLfloat cube[]
   {
@@ -197,12 +201,12 @@ int main()
     -0.5f,  0.5f, -0.5f,  grass.leftX,  grass.topY,
     -0.5f, -0.5f, -0.5f,  grass.leftX,  grass.bottomY,
 
-    -0.5f, -0.5f,  0.5f,  dirt.leftX,  dirt.bottomY,
-     0.5f, -0.5f,  0.5f,  dirt.rightX, dirt.bottomY,
-     0.5f,  0.5f,  0.5f,  dirt.rightX, dirt.topY,
-     0.5f,  0.5f,  0.5f,  dirt.rightX, dirt.topY,
-    -0.5f,  0.5f,  0.5f,  dirt.leftX,  dirt.topY,
-    -0.5f, -0.5f,  0.5f,  dirt.leftX,  dirt.bottomY,
+    -0.5f, -0.5f,  0.5f,  grass.leftX,  grass.bottomY,
+     0.5f, -0.5f,  0.5f,  grass.rightX, grass.bottomY,
+     0.5f,  0.5f,  0.5f,  grass.rightX, grass.topY,
+     0.5f,  0.5f,  0.5f,  grass.rightX, grass.topY,
+    -0.5f,  0.5f,  0.5f,  grass.leftX,  grass.topY,
+    -0.5f, -0.5f,  0.5f,  grass.leftX,  grass.bottomY,
 
     -0.5f,  0.5f,  0.5f,  grass.rightX, grass.bottomY,
     -0.5f,  0.5f, -0.5f,  grass.rightX, grass.topY,
@@ -280,6 +284,8 @@ int main()
    * Game loop
    ******************************/
 
+  glm::vec3 cubePosition {0.0f, 0.0f, 0.0f};
+
   while (!glfwWindowShouldClose(window))
   {
     processInput(window);
@@ -291,7 +297,6 @@ int main()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
 
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
@@ -312,17 +317,31 @@ int main()
     // projection = glm::ortho(-2.0f, 2.0f, 2.0f, -2.0f, -1000.0f, 1000.0f);
     defaultShader.uniformMat4("projection", projection);
 
-    // Draw cubes
-    for (unsigned int i { 0 }; i < 10; ++i)
-    {
-      model = glm::mat4(1.0f);
-      model = glm::translate(model, cubePositions[i]);
-      model = glm::rotate(model, currTime * glm::radians(60.0f) * i + 1, glm::vec3(1.0f, 0.5f, 0.0f));
-      defaultShader.uniformMat4("model", model);
+    // for (unsigned int i { 0 }; i < 10; ++i)
+    // {
+    //   model = glm::mat4(1.0f);
+    //   model = glm::translate(model, cubePositions[i]);
+    //   model = glm::rotate(model, currTime * glm::radians(60.0f) * i + 1, glm::vec3(1.0f, 0.5f, 0.0f));
+    //   defaultShader.uniformMat4("model", model);
+    //
+    //   glDrawArrays(GL_TRIANGLES, 0, 36);
+    // }
 
-      glDrawArrays(GL_TRIANGLES, 0, 36);
-    }
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, cubePosition);
+    model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.5f, 0.0f));
+    model = glm::scale(model, glm::vec3(size, size, size));
+    defaultShader.uniformMat4("model", model);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 
+    //ImGui stuff
+    ImGui::Begin("awoo");
+    ImGui::Text("testing");
+    ImGui::SliderFloat3("Position", &cubePosition.x, -10.0f, 10.0f);
+    ImGui::SliderFloat("Size", &size, 0.0f, 5.0f);
+    ImGui::End();
+
+    //Required to render ImGui
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

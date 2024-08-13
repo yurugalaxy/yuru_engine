@@ -9,6 +9,11 @@ link_libraries(glfw)
 
 add_executable(yuru_engine main.cpp
         lib/glad.c
-        shader.hpp)
+        shader.hpp
+        shader_opengl.hpp
+        shader_opengl.cpp
+        renderer.hpp
+        renderer.cpp
+        shader.cpp)
 
-target_include_directories(yuru_engine PRIVATE         lib)
+target_include_directories(yuru_engine PRIVATE lib)

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cmath>
+#include <memory>
 
 //Main GL
 #include <glad/glad.h>
@@ -15,6 +16,7 @@
 #include <stb_image/stb_image.h>
 
 #include "shader.hpp"
+#include "shader_opengl.hpp"
 
 constexpr unsigned int Screen_Width { 640 };
 constexpr unsigned int Screen_Height { 480 };
@@ -194,8 +196,9 @@ int main()
    ******************************/
 
   //Generate a shader program
-  Shader defaultShader("../shaders/vertShader.vert","../shaders/fragShader.frag");
-  defaultShader.use();
+  //TODO: get shared ptrs working
+  std::shared_ptr<Yuru::Shader> defaultShader = Yuru::Shader::create("../shaders/vertShader.vert","../shaders/fragShader.frag");
+  defaultShader->use();
 
   GLfloat cube[]
   {
@@ -261,7 +264,7 @@ int main()
     1, 3, 2
   };
 
-  defaultShader.setFloat("playerTex", 1);
+  dynamic_cast<Yuru::OpenGLShader*>(defaultShader)->uniformFloat("playerTex", 1);
 
   //     // VBO - for triangles // VAO - holds VBOs   //EBO - for multiple triangles that share vertices
   GLuint vertexBufferObjectVBO, vertexArrayObjectVAO, elementBufferObjectEBO;
@@ -308,13 +311,13 @@ int main()
     float currTime = glfwGetTime();
 
     glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-    defaultShader.setMat4("view", view);
+    dynamic_cast<Yuru::OpenGLShader*>(defaultShader)->uniformMat4("view", view);
 
     projection = glm::perspective(glm::radians(fov), 640.0f / 480.0f,0.1f, 100.0f);
     // Ortho projection needs to be really small since all objects are in -1.0 - 1.0 space
     // We should also really disable the z buffer to avoid z fighting when using ortho
     // projection = glm::ortho(-2.0f, 2.0f, 2.0f, -2.0f, -1000.0f, 1000.0f);
-    defaultShader.setMat4("projection", projection);
+    dynamic_cast<Yuru::OpenGLShader*>(defaultShader)->uniformMat4("projection", projection);
 
     // Draw cubes
     for (unsigned int i { 0 }; i < 10; ++i)
@@ -322,7 +325,7 @@ int main()
       model = glm::mat4(1.0f);
       model = glm::translate(model, cubePositions[i]);
       model = glm::rotate(model, currTime * glm::radians(60.0f) * i + 1, glm::vec3(1.0f, 0.5f, 0.0f));
-      defaultShader.setMat4("model", model);
+      dynamic_cast<Yuru::OpenGLShader*>(defaultShader)->uniformMat4("model", model);
 
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }

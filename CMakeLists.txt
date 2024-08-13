@@ -14,6 +14,8 @@ add_executable(yuru_engine main.cpp
         shader_opengl.cpp
         renderer.hpp
         renderer.cpp
-        shader.cpp)
+        shader.cpp
+        camera_flycam.cpp
+        camera_flycam.hpp)
 
 target_include_directories(yuru_engine PRIVATE lib)

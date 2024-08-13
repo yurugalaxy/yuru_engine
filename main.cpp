@@ -18,40 +18,28 @@
 //OpenGL Shader loading
 #include "shader_opengl.hpp"
 
+#include "camera_flycam.hpp"
+
 //Window globals
 constexpr unsigned int Screen_Width { 640 };
 constexpr unsigned int Screen_Height { 480 };
 
-//Camera globals
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-bool firstMouse = true;
-float yaw = -90.0f;
-float pitch = 0.0f;
 float lastX = Screen_Width / 2.0f;
 float lastY = Screen_Height / 2.0f;
-float fov = 45.0f;
+float FOV = 45.0f;
 
 //Deltatime globals
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+Yuru::ProjectionCam beeCam {Screen_Width, Screen_Height, FOV};
 
 void processInput(GLFWwindow* window)
 {
   const float cameraSpeed = 2.5f * deltaTime;
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
-  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    cameraPos += cameraSpeed * cameraFront;
-  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    cameraPos -= cameraSpeed * cameraFront;
-  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
-  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
-  //For an FPS style camera, clamp the y to 0
-  // cameraPos.y = 0.0f;
+  beeCam.processInput(window, deltaTime);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -61,28 +49,12 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void mouse_callback(GLFWwindow* window, const double xPos, const double yPos)
 {
-  float xOffset = xPos - lastX;
-  float yOffset = lastY - yPos; // Reversed because Y is from bottom to top
-  lastX = xPos;
-  lastY = yPos;
+  beeCam.processMouse(xPos, yPos);
+}
 
-  constexpr float sensitivity = 0.1f;
-  xOffset *= sensitivity;
-  yOffset *= sensitivity;
-
-  yaw += xOffset;
-  pitch += yOffset;
-
-  if (pitch > 89.0f)
-    pitch = 89.0f;
-  if (pitch < -89.0f)
-    pitch = -89.0f;
-
-  glm::vec3 front;
-  front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-  front.y = sin(glm::radians(pitch));
-  front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-  cameraFront = glm::normalize(front);
+void mouse_button_callback(GLFWwindow* window, const int button, const int action, const int mods)
+{
+  beeCam.processMouseButtons(window, button, action, mods);
 }
 
 //TODO: abstract the texture class
@@ -169,9 +141,10 @@ int main()
   }
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetCursorPosCallback(window, mouse_callback);
+  glfwSetMouseButtonCallback(window, mouse_button_callback);
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   //Load glad, all OpenGL function pointers
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -196,6 +169,7 @@ int main()
   glActiveTexture(GL_TEXTURE0);
   loadSpriteSheet("../resources/tilemap_packed.png");
   SpritePosition grass = loadSprite(7, 7, 16.0f, 192.0f, 176.0f);
+  SpritePosition dirt = loadSprite(3, 7, 16.0f, 192.0f, 176.0f);
 
   /******************************
    * Vertex and fragment loading
@@ -213,12 +187,12 @@ int main()
     -0.5f,  0.5f, -0.5f,  grass.leftX,  grass.topY,
     -0.5f, -0.5f, -0.5f,  grass.leftX,  grass.bottomY,
 
-    -0.5f, -0.5f,  0.5f,  grass.leftX,  grass.bottomY,
-     0.5f, -0.5f,  0.5f,  grass.rightX, grass.bottomY,
-     0.5f,  0.5f,  0.5f,  grass.rightX, grass.topY,
-     0.5f,  0.5f,  0.5f,  grass.rightX, grass.topY,
-    -0.5f,  0.5f,  0.5f,  grass.leftX,  grass.topY,
-    -0.5f, -0.5f,  0.5f,  grass.leftX,  grass.bottomY,
+    -0.5f, -0.5f,  0.5f,  dirt.leftX,  dirt.bottomY,
+     0.5f, -0.5f,  0.5f,  dirt.rightX, dirt.bottomY,
+     0.5f,  0.5f,  0.5f,  dirt.rightX, dirt.topY,
+     0.5f,  0.5f,  0.5f,  dirt.rightX, dirt.topY,
+    -0.5f,  0.5f,  0.5f,  dirt.leftX,  dirt.topY,
+    -0.5f, -0.5f,  0.5f,  dirt.leftX,  dirt.bottomY,
 
     -0.5f,  0.5f,  0.5f,  grass.rightX, grass.bottomY,
     -0.5f,  0.5f, -0.5f,  grass.rightX, grass.topY,
@@ -314,10 +288,10 @@ int main()
 
     float currTime = glfwGetTime();
 
-    glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    glm::mat4 view = glm::lookAt(beeCam.angles.cameraPos, beeCam.angles.cameraPos + beeCam.angles.cameraFront, beeCam.angles.cameraUp);
     defaultShader.uniformMat4("view", view);
 
-    projection = glm::perspective(glm::radians(fov), 640.0f / 480.0f,0.1f, 100.0f);
+    projection = glm::perspective(glm::radians(beeCam.FOV), 640.0f / 480.0f,0.1f, 100.0f);
     // Ortho projection needs to be really small since all objects are in -1.0 - 1.0 space
     // We should also really disable the z buffer to avoid z fighting when using ortho
     // projection = glm::ortho(-2.0f, 2.0f, 2.0f, -2.0f, -1000.0f, 1000.0f);

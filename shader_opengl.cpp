@@ -77,10 +77,13 @@ namespace Yuru
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);
+
+    std::cout << "OpenGL Shader " << m_shaderID << " successfully created.\n";
   }
 
   OpenGLShader::~OpenGLShader()
   {
+    std::cout << "OpenGL Shader " << m_shaderID << " destroyed.\n";
     glDeleteProgram(m_shaderID);
   }
 

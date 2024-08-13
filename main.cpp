@@ -15,16 +15,17 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image/stb_image.h>
 
-#include "shader.hpp"
+//OpenGL Shader loading
 #include "shader_opengl.hpp"
 
+//Window globals
 constexpr unsigned int Screen_Width { 640 };
 constexpr unsigned int Screen_Height { 480 };
 
+//Camera globals
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
 bool firstMouse = true;
 float yaw = -90.0f;
 float pitch = 0.0f;
@@ -32,6 +33,7 @@ float lastX = Screen_Width / 2.0f;
 float lastY = Screen_Height / 2.0f;
 float fov = 45.0f;
 
+//Deltatime globals
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
@@ -83,6 +85,7 @@ void mouse_callback(GLFWwindow* window, const double xPos, const double yPos)
   cameraFront = glm::normalize(front);
 }
 
+//TODO: abstract the texture class
 struct SpritePosition
 {
   float leftX;
@@ -144,7 +147,10 @@ void loadSpriteSheet(const char* path)
 
 int main()
 {
-  //Initialise GLFW
+
+  /******************************
+   * Initialise GLFW
+   ******************************/
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -167,7 +173,7 @@ int main()
   glfwSwapInterval(1);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-  //Load all OpenGL function pointers
+  //Load glad, all OpenGL function pointers
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
   {
     std::cout << "Failed to initialise GLAD.\n";
@@ -195,10 +201,8 @@ int main()
    * Vertex and fragment loading
    ******************************/
 
-  //Generate a shader program
-  //TODO: get shared ptrs working
-  std::shared_ptr<Yuru::Shader> defaultShader = Yuru::Shader::create("../shaders/vertShader.vert","../shaders/fragShader.frag");
-  defaultShader->use();
+  Yuru::OpenGLShader defaultShader("../shaders/vertShader.vert","../shaders/fragShader.frag");
+  defaultShader.use();
 
   GLfloat cube[]
   {
@@ -264,7 +268,7 @@ int main()
     1, 3, 2
   };
 
-  dynamic_cast<Yuru::OpenGLShader*>(defaultShader)->uniformFloat("playerTex", 1);
+  defaultShader.uniformFloat("playerTex", 1);
 
   //     // VBO - for triangles // VAO - holds VBOs   //EBO - for multiple triangles that share vertices
   GLuint vertexBufferObjectVBO, vertexArrayObjectVAO, elementBufferObjectEBO;
@@ -296,13 +300,13 @@ int main()
   {
     processInput(window);
 
+    //Clear the framebuffer
     glClearColor(0.8f, 0.5f, 0.8f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
-
 
     //Matrices
     auto model = glm::mat4(1.0f);
@@ -311,13 +315,13 @@ int main()
     float currTime = glfwGetTime();
 
     glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-    dynamic_cast<Yuru::OpenGLShader*>(defaultShader)->uniformMat4("view", view);
+    defaultShader.uniformMat4("view", view);
 
     projection = glm::perspective(glm::radians(fov), 640.0f / 480.0f,0.1f, 100.0f);
     // Ortho projection needs to be really small since all objects are in -1.0 - 1.0 space
     // We should also really disable the z buffer to avoid z fighting when using ortho
     // projection = glm::ortho(-2.0f, 2.0f, 2.0f, -2.0f, -1000.0f, 1000.0f);
-    dynamic_cast<Yuru::OpenGLShader*>(defaultShader)->uniformMat4("projection", projection);
+    defaultShader.uniformMat4("projection", projection);
 
     // Draw cubes
     for (unsigned int i { 0 }; i < 10; ++i)
@@ -325,7 +329,7 @@ int main()
       model = glm::mat4(1.0f);
       model = glm::translate(model, cubePositions[i]);
       model = glm::rotate(model, currTime * glm::radians(60.0f) * i + 1, glm::vec3(1.0f, 0.5f, 0.0f));
-      dynamic_cast<Yuru::OpenGLShader*>(defaultShader)->uniformMat4("model", model);
+      defaultShader.uniformMat4("model", model);
 
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }

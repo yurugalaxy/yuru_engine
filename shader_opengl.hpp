@@ -5,18 +5,15 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <string>
-
-#include "shader.hpp"
 
 namespace Yuru
 {
-  class OpenGLShader : public Shader
+  class OpenGLShader
   {
   public:
     OpenGLShader(const char* vertexPath, const char* fragmentPath);
-    virtual ~OpenGLShader();
-    void use() const override;
+    ~OpenGLShader();
+    void use() const;
     void uniformBool(const std::string& name, bool value) const;
     void uniformInt(const std::string& name, int value) const;
     void uniformFloat(const std::string& name, float value) const;

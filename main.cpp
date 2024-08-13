@@ -6,6 +6,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+//Yuru engine stuff
+#include "shader_opengl.hpp"
+#include "camera_flycam.hpp"
+
 // Matrices and vector transforms
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -15,34 +19,33 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image/stb_image.h>
 
-//OpenGL Shader loading
-#include "shader_opengl.hpp"
-
-#include "camera_flycam.hpp"
+//Imgui
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
 //Window globals
-constexpr unsigned int Screen_Width { 640 };
-constexpr unsigned int Screen_Height { 480 };
+constexpr unsigned int Screen_Width { 1920 };
+constexpr unsigned int Screen_Height { 1080 };
 
-float lastX = Screen_Width / 2.0f;
-float lastY = Screen_Height / 2.0f;
 float FOV = 45.0f;
 
 //Deltatime globals
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+//Create the flycam
 Yuru::ProjectionCam beeCam {Screen_Width, Screen_Height, FOV};
 
 void processInput(GLFWwindow* window)
 {
-  const float cameraSpeed = 2.5f * deltaTime;
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
+
   beeCam.processInput(window, deltaTime);
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
 {
   glViewport(0, 0, width, height);
 }
@@ -128,6 +131,10 @@ int main()
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+  ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
   /******************************
    * Create GLFW window
    ******************************/
@@ -145,6 +152,9 @@ int main()
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
   // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplOpenGL3_Init();
 
   //Load glad, all OpenGL function pointers
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -278,6 +288,11 @@ int main()
     glClearColor(0.8f, 0.5f, 0.8f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    ImGui::ShowDemoWindow();
+
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
@@ -308,9 +323,16 @@ int main()
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
+
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
 
   glfwTerminate();
   return 0;

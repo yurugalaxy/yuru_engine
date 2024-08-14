@@ -306,32 +306,18 @@ int main()
     auto model = glm::mat4(1.0f);
     auto projection = glm::mat4(1.0f);
 
-    float currTime = glfwGetTime();
-
     glm::mat4 view = glm::lookAt(beeCam.angles.cameraPos, beeCam.angles.cameraPos + beeCam.angles.cameraFront, beeCam.angles.cameraUp);
     defaultShader.uniformMat4("view", view);
 
     projection = glm::perspective(glm::radians(beeCam.FOV), 640.0f / 480.0f,0.1f, 100.0f);
-    // Ortho projection needs to be really small since all objects are in -1.0 - 1.0 space
-    // We should also really disable the z buffer to avoid z fighting when using ortho
-    // projection = glm::ortho(-2.0f, 2.0f, 2.0f, -2.0f, -1000.0f, 1000.0f);
     defaultShader.uniformMat4("projection", projection);
-
-    // for (unsigned int i { 0 }; i < 10; ++i)
-    // {
-    //   model = glm::mat4(1.0f);
-    //   model = glm::translate(model, cubePositions[i]);
-    //   model = glm::rotate(model, currTime * glm::radians(60.0f) * i + 1, glm::vec3(1.0f, 0.5f, 0.0f));
-    //   defaultShader.uniformMat4("model", model);
-    //
-    //   glDrawArrays(GL_TRIANGLES, 0, 36);
-    // }
 
     model = glm::mat4(1.0f);
     model = glm::translate(model, cubePosition);
     model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.5f, 0.0f));
     model = glm::scale(model, glm::vec3(size, size, size));
     defaultShader.uniformMat4("model", model);
+
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     //ImGui stuff

@@ -2,11 +2,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "camera_flycam.hpp"
+#include "camera_creative.hpp"
 
 namespace Yuru
 {
-  ProjectionCam::ProjectionCam(const float screenWidth, const float screenHeight, float fov)
+  CreativeCamera::CreativeCamera(const float screenWidth, const float screenHeight, float fov)
   {
     angles.cameraPos.z = 3.0f;
     angles.cameraFront.z = -1.0f;
@@ -17,12 +17,12 @@ namespace Yuru
     mousepos.mouseY = screenHeight / 2.0f;
   }
 
-  ProjectionCam::~ProjectionCam()
+  CreativeCamera::~CreativeCamera()
   {
     std::cout << "Destroying projection cam.\n";
   }
 
-  void ProjectionCam::processInput(GLFWwindow* window, const float deltaTime)
+  void CreativeCamera::ProcessInput(GLFWwindow* window, const float deltaTime)
   {
     const float cameraSpeed = 2.5f * deltaTime;
 
@@ -40,7 +40,7 @@ namespace Yuru
       angles.cameraPos.y -= cameraSpeed;
   }
 
-  void ProjectionCam::processMouse(const double xPos, const double yPos)
+  void CreativeCamera::ProcessMouse(const double xPos, const double yPos)
   {
     if (!mousepos.mouseActive)
     {
@@ -79,7 +79,7 @@ namespace Yuru
     angles.cameraFront = glm::normalize(front);
   }
 
-  void ProjectionCam::processMouseButtons(GLFWwindow* window, int button, int action, int mods)
+  void CreativeCamera::ProcessMouseButtons(GLFWwindow* window, int button, int action, int mods)
   {
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
     {

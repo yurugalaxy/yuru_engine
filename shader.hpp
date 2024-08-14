@@ -4,15 +4,18 @@
 
 #pragma once
 
-//TODO: maybe implement an interface for shaders at some point
-// namespace Yuru
-// {
-//   class Shader
-//   {
-//   public:
-//     virtual ~Shader() = default;
-//     virtual void use() const = 0;
+#include "base.hpp"
 
-//     static Shader* create(const char* vertexPath, const char* fragmentPath);
-//   };
-// }
+namespace Yuru
+{
+  class OpenGLShader;
+
+  class Shader
+  {
+  public:
+    static Shared<OpenGLShader> Create(const char* vertexPath, const char* fragmentPath);
+
+    virtual ~Shader() = default;
+    virtual void Use() const = 0;
+  };
+}

@@ -7,8 +7,9 @@
 #include <GLFW/glfw3.h>
 
 //Yuru engine stuff
+#include "base.hpp"
 #include "shader_opengl.hpp"
-#include "camera_flycam.hpp"
+#include "camera_creative.hpp"
 
 // Matrices and vector transforms
 #include <glm/glm.hpp>
@@ -23,6 +24,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "texture.hpp"
 
 //Window globals
 constexpr unsigned int Screen_Width { 1920 };
@@ -35,14 +37,14 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 //Create the flycam
-Yuru::ProjectionCam beeCam {Screen_Width, Screen_Height, FOV};
+Yuru::CreativeCamera beeCam {Screen_Width, Screen_Height, FOV};
 
 void processInput(GLFWwindow* window)
 {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
 
-  beeCam.processInput(window, deltaTime);
+  beeCam.ProcessInput(window, deltaTime);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
@@ -52,12 +54,12 @@ void framebuffer_size_callback(GLFWwindow* window, const int width, const int he
 
 void mouse_callback(GLFWwindow* window, const double xPos, const double yPos)
 {
-  beeCam.processMouse(xPos, yPos);
+  beeCam.ProcessMouse(xPos, yPos);
 }
 
 void mouse_button_callback(GLFWwindow* window, const int button, const int action, const int mods)
 {
-  beeCam.processMouseButtons(window, button, action, mods);
+  beeCam.ProcessMouseButtons(window, button, action, mods);
 }
 
 //TODO: abstract the texture class
@@ -68,53 +70,6 @@ struct SpritePosition
   float bottomY;
   float topY;
 };
-
-SpritePosition loadSprite(const float x, const float y, const float spriteSize, const float sheetWidth, const float sheetHeight)
-{
-  return {x * spriteSize / sheetWidth
-            , (x + 1) * spriteSize / sheetWidth
-            ,y * spriteSize / sheetHeight
-            , (y + 1) * spriteSize / sheetHeight};
-}
-
-void loadSpriteSheet(const char* path)
-{
-  unsigned int texture;
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
-
-  //Texure wrapping & filtering options
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  int width, height, nrChannels;
-  stbi_set_flip_vertically_on_load(true);
-  unsigned char* data = stbi_load(path
-                                  , &width
-                                  , &height
-                                  , &nrChannels
-                                  , 0);
-  if (data)
-  {
-    glTexImage2D(GL_TEXTURE_2D
-                , 0
-                ,GL_RGBA
-                , width
-                , height
-                , 0
-                , GL_RGBA
-                , GL_UNSIGNED_BYTE
-                , data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  }
-  else
-  {
-    std::cout << "Failed to load texture.\n";
-  }
-  stbi_image_free(data);
-}
 
   /******************************
    * Main
@@ -178,85 +133,78 @@ int main()
    ******************************/
 
   glActiveTexture(GL_TEXTURE0);
-  loadSpriteSheet("../resources/tilemap_packed.png");
-  // SpritePosition grass = loadSprite(7, 7, 16.0f, 192.0f, 176.0f);
-  SpritePosition dirt = loadSprite(3, 7, 16.0f, 192.0f, 176.0f);
+  Yuru::Texture hewo;
+  hewo.Load("../resources/tilemap_packed.png");
+
+  //For ImGui
+  float size { 1.0f };
+  glm::vec3 cubePosition {0.0f, 0.0f, 0.0f};
+  int spritePos[2] {{},{}};
+
 
   /******************************
    * Vertex and fragment loading
    ******************************/
 
-  SpritePosition grass = loadSprite(7, 7, 16.0f, 192.0f, 176.0f);
-  Yuru::OpenGLShader defaultShader("../shaders/vertShader.vert","../shaders/fragShader.frag");
-  defaultShader.use();
+  Yuru::Shared<Yuru::OpenGLShader> defaultShader = Yuru::Shader::Create("../shaders/vertShader.vert", "../shaders/fragShader.frag");
+  defaultShader->Use();
+  defaultShader->UploadUniformFloat("playerTex", 1);
 
-  float size { 1.0f };
 
+  /******************************
+   * Game loop
+   ******************************/
+
+
+  while (!glfwWindowShouldClose(window))
+  {
+    processInput(window);
+  hewo.SetPosition(spritePos[0], spritePos[1], 16, 192, 176);
   GLfloat cube[]
   {
-    -0.5f, -0.5f, -0.5f,  grass.leftX,  grass.bottomY,
-     0.5f, -0.5f, -0.5f,  grass.rightX, grass.bottomY,
-     0.5f,  0.5f, -0.5f,  grass.rightX, grass.topY,
-     0.5f,  0.5f, -0.5f,  grass.rightX, grass.topY,
-    -0.5f,  0.5f, -0.5f,  grass.leftX,  grass.topY,
-    -0.5f, -0.5f, -0.5f,  grass.leftX,  grass.bottomY,
+    -0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.bottomY,
+     0.5f, -0.5f, -0.5f,  hewo.position.rightX, hewo.position.bottomY,
+     0.5f,  0.5f, -0.5f,  hewo.position.rightX, hewo.position.topY,
+     0.5f,  0.5f, -0.5f,  hewo.position.rightX, hewo.position.topY,
+    -0.5f,  0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
+    -0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.bottomY,
 
-    -0.5f, -0.5f,  0.5f,  grass.leftX,  grass.bottomY,
-     0.5f, -0.5f,  0.5f,  grass.rightX, grass.bottomY,
-     0.5f,  0.5f,  0.5f,  grass.rightX, grass.topY,
-     0.5f,  0.5f,  0.5f,  grass.rightX, grass.topY,
-    -0.5f,  0.5f,  0.5f,  grass.leftX,  grass.topY,
-    -0.5f, -0.5f,  0.5f,  grass.leftX,  grass.bottomY,
+    -0.5f, -0.5f,  0.5f,  hewo.position.leftX,  hewo.position.bottomY,
+     0.5f, -0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
+     0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.topY,
+     0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.topY,
+    -0.5f,  0.5f,  0.5f,  hewo.position.leftX,  hewo.position.topY,
+    -0.5f, -0.5f,  0.5f,  hewo.position.leftX,  hewo.position.bottomY,
 
-    -0.5f,  0.5f,  0.5f,  grass.rightX, grass.bottomY,
-    -0.5f,  0.5f, -0.5f,  grass.rightX, grass.topY,
-    -0.5f, -0.5f, -0.5f,  grass.leftX,  grass.topY,
-    -0.5f, -0.5f, -0.5f,  grass.leftX,  grass.topY,
-    -0.5f, -0.5f,  0.5f,  grass.leftX,  grass.bottomY,
-    -0.5f,  0.5f,  0.5f,  grass.rightX, grass.bottomY,
+    -0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
+    -0.5f,  0.5f, -0.5f,  hewo.position.rightX, hewo.position.topY,
+    -0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
+    -0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
+    -0.5f, -0.5f,  0.5f,  hewo.position.leftX,  hewo.position.bottomY,
+    -0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
 
-     0.5f,  0.5f,  0.5f,  grass.rightX, grass.bottomY,
-     0.5f,  0.5f, -0.5f,  grass.rightX, grass.topY,
-     0.5f, -0.5f, -0.5f,  grass.leftX,  grass.topY,
-     0.5f, -0.5f, -0.5f,  grass.leftX,  grass.topY,
-     0.5f, -0.5f,  0.5f,  grass.leftX,  grass.bottomY,
-     0.5f,  0.5f,  0.5f,  grass.rightX, grass.bottomY,
+     0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
+     0.5f,  0.5f, -0.5f,  hewo.position.rightX, hewo.position.topY,
+     0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
+     0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
+     0.5f, -0.5f,  0.5f,  hewo.position.leftX,  hewo.position.bottomY,
+     0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
 
-    -0.5f, -0.5f, -0.5f,  grass.leftX,  grass.topY,
-     0.5f, -0.5f, -0.5f,  grass.rightX, grass.topY,
-     0.5f, -0.5f,  0.5f,  grass.rightX, grass.bottomY,
-     0.5f, -0.5f,  0.5f,  grass.rightX, grass.bottomY,
-    -0.5f, -0.5f,  0.5f,  grass.leftX,  grass.bottomY,
-    -0.5f, -0.5f, -0.5f,  grass.leftX,  grass.topY,
+    -0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
+     0.5f, -0.5f, -0.5f,  hewo.position.rightX, hewo.position.topY,
+     0.5f, -0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
+     0.5f, -0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
+    -0.5f, -0.5f,  0.5f,  hewo.position.leftX,  hewo.position.bottomY,
+    -0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
 
-    -0.5f,  0.5f, -0.5f,  grass.leftX,  grass.topY,
-     0.5f,  0.5f, -0.5f,  grass.rightX, grass.topY,
-     0.5f,  0.5f,  0.5f,  grass.rightX, grass.bottomY,
-     0.5f,  0.5f,  0.5f,  grass.rightX, grass.bottomY,
-    -0.5f,  0.5f,  0.5f,  grass.leftX,  grass.bottomY,
-    -0.5f,  0.5f, -0.5f,  grass.leftX,  grass.topY
+    -0.5f,  0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
+     0.5f,  0.5f, -0.5f,  hewo.position.rightX, hewo.position.topY,
+     0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
+     0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
+    -0.5f,  0.5f,  0.5f,  hewo.position.leftX,  hewo.position.bottomY,
+    -0.5f,  0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY
   };
 
-  glm::vec3 cubePositions[] = {
-    glm::vec3( 0.0f,  0.0f,  0.0f),
-    glm::vec3( 2.0f,  5.0f, -15.0f),
-    glm::vec3(-1.5f, -2.2f, -2.5f),
-    glm::vec3(-3.8f, -2.0f, -12.3f),
-    glm::vec3( 2.4f, -0.4f, -3.5f),
-    glm::vec3(-1.7f,  3.0f, -7.5f),
-    glm::vec3( 1.3f, -2.0f, -2.5f),
-    glm::vec3( 1.5f,  2.0f, -2.5f),
-    glm::vec3( 1.5f,  0.2f, -1.5f),
-    glm::vec3(-1.3f,  1.0f, -1.5f)
-};
-
-  //Specify the way to draw each index
-  unsigned int indices[] = {
-    0, 2, 1,
-    1, 3, 2
-  };
-
-  defaultShader.uniformFloat("playerTex", 1);
 
   //     // VBO - for triangles // VAO - holds VBOs   //EBO - for multiple triangles that share vertices
   GLuint vertexBufferObjectVBO, vertexArrayObjectVAO, elementBufferObjectEBO;
@@ -280,16 +228,6 @@ int main()
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
 
-  /******************************
-   * Game loop
-   ******************************/
-
-  glm::vec3 cubePosition {0.0f, 0.0f, 0.0f};
-
-  while (!glfwWindowShouldClose(window))
-  {
-    processInput(window);
-
     //Clear the framebuffer
     glClearColor(0.8f, 0.5f, 0.8f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -307,16 +245,16 @@ int main()
     auto projection = glm::mat4(1.0f);
 
     glm::mat4 view = glm::lookAt(beeCam.angles.cameraPos, beeCam.angles.cameraPos + beeCam.angles.cameraFront, beeCam.angles.cameraUp);
-    defaultShader.uniformMat4("view", view);
+    defaultShader->UploadUniformMat4("view", view);
 
     projection = glm::perspective(glm::radians(beeCam.FOV), 640.0f / 480.0f,0.1f, 100.0f);
-    defaultShader.uniformMat4("projection", projection);
+    defaultShader->UploadUniformMat4("projection", projection);
 
     model = glm::mat4(1.0f);
     model = glm::translate(model, cubePosition);
     model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.5f, 0.0f));
     model = glm::scale(model, glm::vec3(size, size, size));
-    defaultShader.uniformMat4("model", model);
+    defaultShader->UploadUniformMat4("model", model);
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -325,6 +263,7 @@ int main()
     ImGui::Text("testing");
     ImGui::SliderFloat3("Position", &cubePosition.x, -10.0f, 10.0f);
     ImGui::SliderFloat("Size", &size, 0.0f, 5.0f);
+    ImGui::SliderInt2("Sprite", &spritePos[0], 0, 12);
     ImGui::End();
 
     //Required to render ImGui

@@ -15,7 +15,7 @@ namespace Yuru
   class Renderer
   {
   public:
-    static RenderAPI getAPI(){ return s_API; };
+    static RenderAPI GetAPI(){ return s_API; };
 
   public:
     static RenderAPI s_API;

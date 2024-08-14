@@ -15,7 +15,9 @@ set(SOURCES
         ${LIB_PATH}/glad.c
         shader_opengl.cpp
         renderer.cpp
-        camera_flycam.cpp
+        camera_creative.cpp
+        shader.cpp
+        texture.cpp
 )
 
 set(IMGUI_SOURCES

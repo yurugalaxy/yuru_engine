@@ -64,49 +64,49 @@ void mouse_button_callback(GLFWwindow* window, const int button, const int actio
 
 struct Cube
 {
-  GLfloat cube[108]
+  GLfloat cube[216]
   {
-    -0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-    -0.5f, -0.5f,  0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-    -0.5f, -0.5f,  0.5f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
-    -0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-     0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-    -0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-    -0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f, -0.5f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
   };
 
   GLfloat textures[72]
@@ -212,52 +212,48 @@ int main()
   //Wireframe mode
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-  /******************************
-   * Texture loading
-   ******************************/
-
-  glActiveTexture(GL_TEXTURE0);
-  Yuru::Texture baseTexture;
-  baseTexture.Load("../resources/container.jpg");
-
   Cube testCube;
+  Cube lightCube;
 
-  /******************************
-   * Vertex and fragment loading
-   ******************************/
+  Yuru::Shared<Yuru::OpenGLShader> lightShader = Yuru::Shader::Create("../shaders/lightShader.vert"
+                                                                , "../shaders/lightShader.frag");
 
-  Yuru::Shared<Yuru::OpenGLShader> defaultShader = Yuru::Shader::Create("../shaders/vertShader.vert"
-                                                                        , "../shaders/fragShader.frag");
-  defaultShader->Use();
-  defaultShader->UploadUniformFloat("playerTex", 1);
+  Yuru::Shared<Yuru::OpenGLShader> lightSourceShader = Yuru::Shader::Create("../shaders/lightShader.vert"
+                                                                            , "../shaders/lightSource.frag");
 
   //     // VBO - raw vertices  // VAO - holds VBOs   //EBO - for indices
-  GLuint VBOcube, VBOtex, vertexArrayObjectVAO;
+  GLuint cubeVBO, normalsVBO, lightVBO, cubeVAO, lightVAO;
 
   //Generate each buffer, &reference if only 1, else array
-  glGenVertexArrays(1, &vertexArrayObjectVAO);
-  glGenBuffers(1, &VBOcube);
-  glGenBuffers(1, &VBOtex);
+  glGenVertexArrays(1, &cubeVAO);
+  glGenVertexArrays(1, &lightVAO);
+  glGenBuffers(1, &cubeVBO);
+  glGenBuffers(1, &normalsVBO);
+  glGenBuffers(1, &lightVBO);
 
-  // Bind the VAO for use with all subsequent VBOs
-  glBindVertexArray(vertexArrayObjectVAO);
+  glBindVertexArray(cubeVAO);
 
-  // Copy vertices into the VBO
-  glBindBuffer(GL_ARRAY_BUFFER, VBOcube);
-  glBufferData(GL_ARRAY_BUFFER, 108 * sizeof(GLfloat), testCube.cube, GL_STATIC_DRAW);
-
-  glBindBuffer(GL_ARRAY_BUFFER, VBOtex);
-  glBufferData(GL_ARRAY_BUFFER, 72 * sizeof(GLfloat), testCube.textures, GL_STATIC_DRAW);
-
-  // Enable the right array (used in "layout location = X" in the vertex shader)
-  // Set stride and index of VBO, if data is tightly packed we can use 0 for the stride
-  glBindBuffer(GL_ARRAY_BUFFER, VBOcube);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
+  glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+  glBufferData(GL_ARRAY_BUFFER, 216 * sizeof(GLfloat), testCube.cube, GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), nullptr);
   glEnableVertexAttribArray(0);
 
-  glBindBuffer(GL_ARRAY_BUFFER, VBOtex);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), nullptr);
+  glBindBuffer(GL_ARRAY_BUFFER, normalsVBO);
+  glBufferData(GL_ARRAY_BUFFER, 216 * sizeof(GLfloat), testCube.cube, GL_STATIC_DRAW);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
   glEnableVertexAttribArray(1);
+
+  glBindVertexArray(lightVAO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
+  glBufferData(GL_ARRAY_BUFFER, 216 * sizeof(GLfloat), lightCube.cube, GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), nullptr);
+  glEnableVertexAttribArray(0);
+
+  lightCube.offsetMod = glm::vec3(0.9f, 1.5f, 0.8f);
+  lightCube.sizeMod = glm::vec3(0.2f);
+  glm::vec3 objColour { 1.0f, 0.5f, 0.32f };
+  glm::vec3 lightColour { 1.0f, 1.0f, 1.0f};
 
   /******************************
    * Game loop
@@ -267,9 +263,8 @@ int main()
   {
     processInput(window);
 
-    // hewo.SetPosition(hewo.position.posX, hewo.position.posY, 16, 192, 176);
     //Clear the framebuffer
-    glClearColor(0.8f, 0.5f, 0.8f, 1.0f);
+    glClearColor(0.15f, 0.12f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -284,27 +279,54 @@ int main()
     //Matrices
     auto model = glm::mat4(1.0f);
     auto projection = glm::mat4(1.0f);
+    lightShader->Use();
+    lightShader->UploadUniformFloat3("objectColour", objColour);
+    lightShader->UploadUniformFloat3("lightColour", lightColour);
+    lightShader->UploadUniformFloat3("lightPos", lightCube.offsetMod);
+    lightShader->UploadUniformFloat3("viewPos", beeCam.angles.cameraPos);
 
-    glm::mat4 view = glm::lookAt(beeCam.angles.cameraPos, beeCam.angles.cameraPos + beeCam.angles.cameraFront, beeCam.angles.cameraUp);
-    defaultShader->UploadUniformMat4("view", view);
+    glm::mat4 view = glm::lookAt(beeCam.angles.cameraPos
+                                , beeCam.angles.cameraPos + beeCam.angles.cameraFront
+                                , beeCam.angles.cameraUp);
+
+    lightShader->UploadUniformMat4("view", view);
 
     projection = glm::perspective(glm::radians(beeCam.FOV), 640.0f / 480.0f,0.1f, 100.0f);
-    defaultShader->UploadUniformMat4("projection", projection);
+    lightShader->UploadUniformMat4("projection", projection);
 
     model = glm::mat4(1.0f);
     model = glm::translate(model, testCube.offsetMod);
     model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.5f, 0.0f));
     model = glm::scale(model, testCube.sizeMod);
-    defaultShader->UploadUniformMat4("model", model);
+    lightShader->UploadUniformMat4("model", model);
 
+    glBindVertexArray(cubeVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    auto modelLight = glm::mat4(1.0f);
+    lightSourceShader->Use();
+
+    lightSourceShader->UploadUniformMat4("view", view);
+    lightSourceShader->UploadUniformMat4("projection", projection);
+    lightSourceShader->UploadUniformFloat3("lightColour", lightColour);
+
+    modelLight = glm::mat4(1.0f);
+    modelLight = glm::translate(modelLight, lightCube.offsetMod);
+    modelLight = glm::scale(modelLight, lightCube.sizeMod);
+    lightSourceShader->UploadUniformMat4("model", modelLight);
+
+    glBindVertexArray(lightVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     //ImGui stuff
     ImGui::Begin("awoo");
     ImGui::Text("testing");
-    ImGui::SliderFloat3("Position", &testCube.offsetMod.x, -10.0f, 10.0f);
-    ImGui::SliderFloat3("Size", &testCube.sizeMod.x, 0.0f, 5.0f);
-    // ImGui::SliderInt2("Sprite", &hewo.position.posX, 0, 12);
+    ImGui::SliderFloat3("Cube Position", &testCube.offsetMod.x, -10.0f, 10.0f);
+    ImGui::SliderFloat3("Cube Colour", &objColour.x, 0.0f, 1.0f);
+    ImGui::SliderFloat3("Cube Size", &testCube.sizeMod.x, 0.0f, 5.0f);
+    ImGui::SliderFloat3("Light Position", &lightCube.offsetMod.x, -10.0f, 10.0f);
+    ImGui::SliderFloat3("Light Colour", &lightColour.x, 0.0f, 1.0f);
+    ImGui::SliderFloat3("Light Size", &lightCube.sizeMod.x, 0.0f, 5.0f);
     ImGui::End();
 
     //Required to render ImGui

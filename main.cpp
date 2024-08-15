@@ -62,15 +62,101 @@ void mouse_button_callback(GLFWwindow* window, const int button, const int actio
   beeCam.ProcessMouseButtons(window, button, action, mods);
 }
 
-//TODO: abstract the texture class
-struct SpritePosition
+struct Cube
 {
-  float leftX;
-  float rightX;
-  float bottomY;
-  float topY;
-};
+  GLfloat cube[108]
+  {
+    -0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+    -0.5f,  0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
 
+    -0.5f, -0.5f,  0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+    -0.5f, -0.5f,  0.5f,
+
+    -0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+
+    -0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f, -0.5f,  0.5f,
+    -0.5f, -0.5f,  0.5f,
+    -0.5f, -0.5f, -0.5f,
+
+    -0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f, -0.5f,
+  };
+
+  GLfloat textures[72]
+  {
+     0.0f, 0.0f,
+     1.0f, 0.0f,
+     1.0f, 1.0f,
+     1.0f, 1.0f,
+     0.0f, 1.0f,
+     0.0f, 0.0f,
+
+     0.0f, 0.0f,
+     1.0f, 0.0f,
+     1.0f, 1.0f,
+     1.0f, 1.0f,
+     0.0f, 1.0f,
+     0.0f, 0.0f,
+
+     1.0f, 0.0f,
+     1.0f, 1.0f,
+     0.0f, 1.0f,
+     0.0f, 1.0f,
+     0.0f, 0.0f,
+     1.0f, 0.0f,
+
+     1.0f, 0.0f,
+     1.0f, 1.0f,
+     0.0f, 1.0f,
+     0.0f, 1.0f,
+     0.0f, 0.0f,
+     1.0f, 0.0f,
+
+     0.0f, 1.0f,
+     1.0f, 1.0f,
+     1.0f, 0.0f,
+     1.0f, 0.0f,
+     0.0f, 0.0f,
+     0.0f, 1.0f,
+
+     0.0f, 1.0f,
+     1.0f, 1.0f,
+     1.0f, 0.0f,
+     1.0f, 0.0f,
+     0.0f, 0.0f,
+     0.0f, 1.0f
+  };
+
+  glm::vec3 offsetMod { {}, {}, {}};
+  glm::vec3 sizeMod { 1.0f, 1.0f, 1.0f };
+};
   /******************************
    * Main
    ******************************/
@@ -89,7 +175,6 @@ int main()
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-  // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
   /******************************
    * Create GLFW window
@@ -107,7 +192,6 @@ int main()
   glfwSetMouseButtonCallback(window, mouse_button_callback);
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
-  // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init();
@@ -133,101 +217,57 @@ int main()
    ******************************/
 
   glActiveTexture(GL_TEXTURE0);
-  Yuru::Texture hewo;
-  hewo.Load("../resources/tilemap_packed.png");
+  Yuru::Texture baseTexture;
+  baseTexture.Load("../resources/container.jpg");
 
-  //For ImGui
-  float size { 1.0f };
-  glm::vec3 cubePosition {0.0f, 0.0f, 0.0f};
-  int spritePos[2] {{},{}};
-
+  Cube testCube;
 
   /******************************
    * Vertex and fragment loading
    ******************************/
 
-  Yuru::Shared<Yuru::OpenGLShader> defaultShader = Yuru::Shader::Create("../shaders/vertShader.vert", "../shaders/fragShader.frag");
+  Yuru::Shared<Yuru::OpenGLShader> defaultShader = Yuru::Shader::Create("../shaders/vertShader.vert"
+                                                                        , "../shaders/fragShader.frag");
   defaultShader->Use();
   defaultShader->UploadUniformFloat("playerTex", 1);
 
-
-  /******************************
-   * Game loop
-   ******************************/
-
-
-  while (!glfwWindowShouldClose(window))
-  {
-    processInput(window);
-  hewo.SetPosition(spritePos[0], spritePos[1], 16, 192, 176);
-  GLfloat cube[]
-  {
-    -0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.bottomY,
-     0.5f, -0.5f, -0.5f,  hewo.position.rightX, hewo.position.bottomY,
-     0.5f,  0.5f, -0.5f,  hewo.position.rightX, hewo.position.topY,
-     0.5f,  0.5f, -0.5f,  hewo.position.rightX, hewo.position.topY,
-    -0.5f,  0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
-    -0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.bottomY,
-
-    -0.5f, -0.5f,  0.5f,  hewo.position.leftX,  hewo.position.bottomY,
-     0.5f, -0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
-     0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.topY,
-     0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.topY,
-    -0.5f,  0.5f,  0.5f,  hewo.position.leftX,  hewo.position.topY,
-    -0.5f, -0.5f,  0.5f,  hewo.position.leftX,  hewo.position.bottomY,
-
-    -0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
-    -0.5f,  0.5f, -0.5f,  hewo.position.rightX, hewo.position.topY,
-    -0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
-    -0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
-    -0.5f, -0.5f,  0.5f,  hewo.position.leftX,  hewo.position.bottomY,
-    -0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
-
-     0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
-     0.5f,  0.5f, -0.5f,  hewo.position.rightX, hewo.position.topY,
-     0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
-     0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
-     0.5f, -0.5f,  0.5f,  hewo.position.leftX,  hewo.position.bottomY,
-     0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
-
-    -0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
-     0.5f, -0.5f, -0.5f,  hewo.position.rightX, hewo.position.topY,
-     0.5f, -0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
-     0.5f, -0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
-    -0.5f, -0.5f,  0.5f,  hewo.position.leftX,  hewo.position.bottomY,
-    -0.5f, -0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
-
-    -0.5f,  0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY,
-     0.5f,  0.5f, -0.5f,  hewo.position.rightX, hewo.position.topY,
-     0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
-     0.5f,  0.5f,  0.5f,  hewo.position.rightX, hewo.position.bottomY,
-    -0.5f,  0.5f,  0.5f,  hewo.position.leftX,  hewo.position.bottomY,
-    -0.5f,  0.5f, -0.5f,  hewo.position.leftX,  hewo.position.topY
-  };
-
-
-  //     // VBO - for triangles // VAO - holds VBOs   //EBO - for multiple triangles that share vertices
-  GLuint vertexBufferObjectVBO, vertexArrayObjectVAO, elementBufferObjectEBO;
+  //     // VBO - raw vertices  // VAO - holds VBOs   //EBO - for indices
+  GLuint VBOcube, VBOtex, vertexArrayObjectVAO;
 
   //Generate each buffer, &reference if only 1, else array
   glGenVertexArrays(1, &vertexArrayObjectVAO);
-  glGenBuffers(1, &vertexBufferObjectVBO);
+  glGenBuffers(1, &VBOcube);
+  glGenBuffers(1, &VBOtex);
 
   // Bind the VAO for use with all subsequent VBOs
   glBindVertexArray(vertexArrayObjectVAO);
 
   // Copy vertices into the VBO
-  glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjectVBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, VBOcube);
+  glBufferData(GL_ARRAY_BUFFER, 108 * sizeof(GLfloat), testCube.cube, GL_STATIC_DRAW);
+
+  glBindBuffer(GL_ARRAY_BUFFER, VBOtex);
+  glBufferData(GL_ARRAY_BUFFER, 72 * sizeof(GLfloat), testCube.textures, GL_STATIC_DRAW);
 
   // Enable the right array (used in "layout location = X" in the vertex shader)
-  glEnableVertexAttribArray(0);
   // Set stride and index of VBO, if data is tightly packed we can use 0 for the stride
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), nullptr);
+  glBindBuffer(GL_ARRAY_BUFFER, VBOcube);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
+  glEnableVertexAttribArray(0);
 
+  glBindBuffer(GL_ARRAY_BUFFER, VBOtex);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), nullptr);
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
 
+  /******************************
+   * Game loop
+   ******************************/
+
+  while (!glfwWindowShouldClose(window))
+  {
+    processInput(window);
+
+    // hewo.SetPosition(hewo.position.posX, hewo.position.posY, 16, 192, 176);
     //Clear the framebuffer
     glClearColor(0.8f, 0.5f, 0.8f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -236,6 +276,7 @@ int main()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
+    //Calc delta time
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
@@ -251,9 +292,9 @@ int main()
     defaultShader->UploadUniformMat4("projection", projection);
 
     model = glm::mat4(1.0f);
-    model = glm::translate(model, cubePosition);
+    model = glm::translate(model, testCube.offsetMod);
     model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.5f, 0.0f));
-    model = glm::scale(model, glm::vec3(size, size, size));
+    model = glm::scale(model, testCube.sizeMod);
     defaultShader->UploadUniformMat4("model", model);
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -261,9 +302,9 @@ int main()
     //ImGui stuff
     ImGui::Begin("awoo");
     ImGui::Text("testing");
-    ImGui::SliderFloat3("Position", &cubePosition.x, -10.0f, 10.0f);
-    ImGui::SliderFloat("Size", &size, 0.0f, 5.0f);
-    ImGui::SliderInt2("Sprite", &spritePos[0], 0, 12);
+    ImGui::SliderFloat3("Position", &testCube.offsetMod.x, -10.0f, 10.0f);
+    ImGui::SliderFloat3("Size", &testCube.sizeMod.x, 0.0f, 5.0f);
+    // ImGui::SliderInt2("Sprite", &hewo.position.posX, 0, 12);
     ImGui::End();
 
     //Required to render ImGui

@@ -20,6 +20,8 @@ namespace Yuru
     float rightX { 1 };
     float bottomY { 0 };
     float topY { 1 };
+    int posX {};
+    int posY {};
   };
 
   class Texture

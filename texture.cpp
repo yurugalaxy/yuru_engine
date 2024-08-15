@@ -25,11 +25,11 @@ namespace Yuru
     {
       glTexImage2D(GL_TEXTURE_2D
                   , 0
-                  ,GL_RGBA
+                  ,GL_RGB
                   , texAttribs.width
                   , texAttribs.height
                   , 0
-                  , GL_RGBA
+                  , GL_RGB
                   , GL_UNSIGNED_BYTE
                   , data);
       glGenerateMipmap(GL_TEXTURE_2D);
@@ -42,6 +42,8 @@ namespace Yuru
 
   void Texture::SetPosition(const int x, const int y, const int spriteSize, const int texWidth, const int texHeight)
   {
+    position.posX = x;
+    position.posY = y;
     position.leftX =    x * spriteSize        / static_cast<float>(texWidth);
     position.rightX =   (x + 1) * spriteSize  / static_cast<float>(texWidth);
     position.bottomY =  y * spriteSize        / static_cast<float>(texHeight);

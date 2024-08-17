@@ -222,13 +222,14 @@ int main()
                                                                             , "../shaders/lightSource.frag");
 
   //     // VBO - raw vertices  // VAO - holds VBOs   //EBO - for indices
-  GLuint cubeVBO, normalsVBO, lightVBO, cubeVAO, lightVAO;
+  GLuint cubeVBO, normalsVBO, textureVBO, lightVBO, cubeVAO, lightVAO;
 
   //Generate each buffer, &reference if only 1, else array
   glGenVertexArrays(1, &cubeVAO);
   glGenVertexArrays(1, &lightVAO);
   glGenBuffers(1, &cubeVBO);
   glGenBuffers(1, &normalsVBO);
+  glGenBuffers(1, &textureVBO);
   glGenBuffers(1, &lightVBO);
 
   glBindVertexArray(cubeVAO);
@@ -243,6 +244,11 @@ int main()
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3 * sizeof(GLfloat)));
   glEnableVertexAttribArray(1);
 
+  glBindBuffer(GL_ARRAY_BUFFER, textureVBO);
+  glBufferData(GL_ARRAY_BUFFER, 72 * sizeof(GLfloat), testCube.textures, GL_STATIC_DRAW);
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), nullptr);
+  glEnableVertexAttribArray(2);
+
   glBindVertexArray(lightVAO);
 
   glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
@@ -252,8 +258,18 @@ int main()
 
   lightCube.offsetMod = glm::vec3(0.9f, 1.5f, 0.8f);
   lightCube.sizeMod = glm::vec3(0.2f);
-  glm::vec3 objColour { 1.0f, 0.5f, 0.32f };
-  glm::vec3 lightColour { 1.0f, 1.0f, 1.0f};
+  glm::vec3 lightColour { 1.0f, 1.0f, 1.0f };
+  float shininess { 32.0f };
+  glm::vec3 ambientLight { 0.2f, 0.2f, 0.2f };
+  glm::vec3 diffuseLight { 0.5f, 0.5f, 0.5f };
+  glm::vec3 specularLight { 1.0f, 1.0f, 1.0f };
+
+  Yuru::Texture::Generate("../resources/container2.png", 0);
+  Yuru::Texture::Generate("../resources/container2_specular.png", 1);
+
+  lightShader->Use();
+  lightShader->UploadUniformInt("material.diffuse", 0);
+  lightShader->UploadUniformInt("material.specular", 1);
 
   /******************************
    * Game loop
@@ -261,6 +277,11 @@ int main()
 
   while (!glfwWindowShouldClose(window))
   {
+    //Calc delta time
+    float currentFrame = glfwGetTime();
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
+
     processInput(window);
 
     //Clear the framebuffer
@@ -271,33 +292,31 @@ int main()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    //Calc delta time
-    float currentFrame = glfwGetTime();
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;
-
     //Matrices
     auto projection = glm::mat4(1.0f);
     lightShader->Use();
-    lightShader->UploadUniformFloat3("objectColour", objColour);
-    lightShader->UploadUniformFloat3("lightColour", lightColour);
     lightShader->UploadUniformFloat3("lightPos", lightCube.offsetMod);
     lightShader->UploadUniformFloat3("viewPos", beeCam.angles.cameraPos);
 
-    glm::mat4 view = glm::lookAt(beeCam.angles.cameraPos
-                                , beeCam.angles.cameraPos + beeCam.angles.cameraFront
-                                , beeCam.angles.cameraUp);
+    lightShader->UploadUniformFloat3("light.ambient", ambientLight);
+    lightShader->UploadUniformFloat3("light.diffuse", diffuseLight);
+    lightShader->UploadUniformFloat3("light.specular", specularLight);
+    lightShader->UploadUniformFloat3("lightColour", lightColour);
 
-    lightShader->UploadUniformMat4("view", view);
+    lightShader->UploadUniformFloat("material.shininess", shininess);
 
+    glm::mat4 view = beeCam.GetViewMatrix();
     projection = glm::perspective(glm::radians(beeCam.FOV), 640.0f / 480.0f,0.1f, 100.0f);
     lightShader->UploadUniformMat4("projection", projection);
+    lightShader->UploadUniformMat4("view", view);
 
     auto model = glm::mat4(1.0f);
-    model = glm::translate(model, testCube.offsetMod);
-    model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.5f, 0.0f));
-    model = glm::scale(model, testCube.sizeMod);
+    model = translate(model, testCube.offsetMod);
+    model = scale(model, testCube.sizeMod);
     lightShader->UploadUniformMat4("model", model);
+
+    auto inverseModel = glm::mat3(transpose(inverse(model)));
+    lightShader->UploadUniformMat3("inverseModel", inverseModel);
 
     glBindVertexArray(cubeVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -307,10 +326,9 @@ int main()
     lightSourceShader->UploadUniformMat4("view", view);
     lightSourceShader->UploadUniformMat4("projection", projection);
     lightSourceShader->UploadUniformFloat3("lightColour", lightColour);
-
     auto modelLight = glm::mat4(1.0f);
-    modelLight = glm::translate(modelLight, lightCube.offsetMod);
-    modelLight = glm::scale(modelLight, lightCube.sizeMod);
+    modelLight = translate(modelLight, lightCube.offsetMod);
+    modelLight = scale(modelLight, lightCube.sizeMod);
     lightSourceShader->UploadUniformMat4("model", modelLight);
 
     glBindVertexArray(lightVAO);
@@ -320,11 +338,11 @@ int main()
     ImGui::Begin("awoo");
     ImGui::Text("testing");
     ImGui::SliderFloat3("Cube Position", &testCube.offsetMod.x, -10.0f, 10.0f);
-    ImGui::SliderFloat3("Cube Colour", &objColour.x, 0.0f, 1.0f);
     ImGui::SliderFloat3("Cube Size", &testCube.sizeMod.x, 0.0f, 5.0f);
     ImGui::SliderFloat3("Light Position", &lightCube.offsetMod.x, -10.0f, 10.0f);
     ImGui::SliderFloat3("Light Colour", &lightColour.x, 0.0f, 1.0f);
-    ImGui::SliderFloat3("Light Size", &lightCube.sizeMod.x, 0.0f, 5.0f);
+    ImGui::SliderFloat("Shininess", &shininess, 0.0f, 256.0f);
+    ImGui::SliderFloat3("Ambient Light", &ambientLight.x, 0.0f, 1.0f);
     ImGui::End();
 
     //Required to render ImGui

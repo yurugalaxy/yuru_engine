@@ -93,4 +93,9 @@ namespace Yuru
       glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
   }
+
+  glm::mat4 CreativeCamera::GetViewMatrix() const
+  {
+    return lookAt(angles.cameraPos, angles.cameraPos + angles.cameraFront, angles.cameraUp);
+  }
 }

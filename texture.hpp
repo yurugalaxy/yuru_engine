@@ -4,21 +4,11 @@
 
 #pragma once
 
-namespace Yuru
+#include <cstdint>
+
+namespace Yuru::Texture
 {
-
-  class Texture
-  {
-  public:
-   Texture(const char* path, bool transparency);
-
-  public:
-    unsigned int textureID {};
-
-  private:
-    int m_width {};
-    int m_height {};
-    int m_channels {};
-    bool m_transparent {};
-  };
+  uint32_t Generate(const char * path, int offset);
+  void SetActive(int offset);
 }
+

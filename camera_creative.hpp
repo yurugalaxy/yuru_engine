@@ -34,6 +34,7 @@ namespace Yuru
     void ProcessInput(GLFWwindow* window, float deltaTime);
     void ProcessMouse(double xPos, double yPos);
     void ProcessMouseButtons(GLFWwindow* window, int button, int action, int mods);
+    glm::mat4 GetViewMatrix() const;
 
   public:
     CameraAngles angles {};

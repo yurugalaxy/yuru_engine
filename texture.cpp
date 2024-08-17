@@ -1,13 +1,14 @@
 #include <glad/glad.h>
 #include <stb_image/stb_image.h>
+#include <iostream>;
 
 #include "texture.hpp"
 namespace Yuru
 {
-  void Texture::Load(const char* path)
+  Texture::Texture(const char* path, const bool transparency)
   {
-    glGenTextures(1, &texAttribs.texture);
-    glBindTexture(GL_TEXTURE_2D, texAttribs.texture);
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
 
     //Texure wrapping & filtering options
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -16,38 +17,19 @@ namespace Yuru
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load(path
-                                    , &texAttribs.width
-                                    , &texAttribs.height
-                                    , &texAttribs.channels
-                                    , 0);
-    if (data)
+    unsigned char* data = stbi_load(path, &m_width, &m_height, &m_channels, 0);
+
+    if (transparency)
     {
-      glTexImage2D(GL_TEXTURE_2D
-                  , 0
-                  ,GL_RGB
-                  , texAttribs.width
-                  , texAttribs.height
-                  , 0
-                  , GL_RGB
-                  , GL_UNSIGNED_BYTE
-                  , data);
-      glGenerateMipmap(GL_TEXTURE_2D);
+      glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     }
     else
     {
+      glTexImage2D(GL_TEXTURE_2D, 0,GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     }
+    glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
-  }
 
-  void Texture::SetPosition(const int x, const int y, const int spriteSize, const int texWidth, const int texHeight)
-  {
-    position.posX = x;
-    position.posY = y;
-    position.leftX =    x * spriteSize        / static_cast<float>(texWidth);
-    position.rightX =   (x + 1) * spriteSize  / static_cast<float>(texWidth);
-    position.bottomY =  y * spriteSize        / static_cast<float>(texHeight);
-    position.topY =     (y + 1) * spriteSize  / static_cast<float>(texHeight);
-
+    std::cout << "Texture " << textureID << " created.\n";
   }
 }

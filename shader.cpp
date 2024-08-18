@@ -4,9 +4,9 @@
 #include "shader_opengl.hpp"
 #include "renderer.hpp"
 
-namespace Yuru
+namespace Lyonesse
 {
-  Shared<OpenGLShader> Shader::Create(const char* vertexPath, const char* fragmentPath)
+  Shared<OpenGLShader> Shader::Initialise(const char* vertexPath, const char* fragmentPath)
   {
     switch(Renderer::GetAPI())
     {

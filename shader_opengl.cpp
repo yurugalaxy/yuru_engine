@@ -6,7 +6,7 @@
 
 #include "shader_opengl.hpp"
 
-namespace Yuru
+namespace Lyonesse
 {
   OpenGLShader::OpenGLShader(const char* vertexPath, const char* fragmentPath)
   {
@@ -86,7 +86,6 @@ namespace Yuru
     std::cout << "OpenGL Shader " << m_shaderID << " destroyed.\n";
     glDeleteProgram(m_shaderID);
   }
-
 
   void OpenGLShader::Use() const
   {

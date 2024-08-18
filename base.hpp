@@ -5,7 +5,7 @@
 #pragma once
 #include <memory>
 
-namespace Yuru
+namespace Lyonesse
 {
   template<typename T>
   using Shared = std::shared_ptr<T>;

@@ -18,6 +18,9 @@ set(SOURCES
         camera_creative.cpp
         shader.cpp
         texture.cpp
+        window.cpp
+        camera.cpp
+        camera_2d.cpp
 )
 
 set(IMGUI_SOURCES

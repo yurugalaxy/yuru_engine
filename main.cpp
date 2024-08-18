@@ -4,17 +4,18 @@
 
 //Main GL
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 
 //Yuru engine stuff
 #include "base.hpp"
 #include "shader_opengl.hpp"
 #include "camera_creative.hpp"
+#include "window.hpp"
 
 // Matrices and vector transforms
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <vector>
 
 // For GL image loading
 #define STB_IMAGE_IMPLEMENTATION
@@ -37,14 +38,13 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 //Create the flycam
-Yuru::CreativeCamera beeCam {Screen_Width, Screen_Height, FOV};
+Lyonesse::Shared<Lyonesse::Camera> beeCam = Lyonesse::Camera::Initialise(1920, 1080, 1);
+// Lyonesse::Shared<Lyonesse::Camera> cam2d = Lyonesse::Camera::Initialise(1920, 1080, 0);
 
 void processInput(GLFWwindow* window)
 {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
-
-  beeCam.ProcessInput(window, deltaTime);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
@@ -52,15 +52,15 @@ void framebuffer_size_callback(GLFWwindow* window, const int width, const int he
   glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* window, const double xPos, const double yPos)
-{
-  beeCam.ProcessMouse(xPos, yPos);
-}
-
-void mouse_button_callback(GLFWwindow* window, const int button, const int action, const int mods)
-{
-  beeCam.ProcessMouseButtons(window, button, action, mods);
-}
+// void mouse_callback(GLFWwindow* window, const double xPos, const double yPos)
+// {
+//   beeCam->ProcessMouse(xPos, yPos);
+// }
+//
+// void mouse_button_callback(GLFWwindow* window, const int button, const int action, const int mods)
+// {
+//   beeCam->ProcessMouseButtons(window, button, action);
+// }
 
 struct Cube
 {
@@ -157,39 +157,35 @@ struct Cube
   glm::vec3 offsetMod { {}, {}, {}};
   glm::vec3 sizeMod { 1.0f, 1.0f, 1.0f };
 };
+
+struct Quad
+{
+  std::vector<GLfloat> vertices
+  {
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+    0.0f, 0.0f,
+
+    0.0f, 1.0f,
+    1.0f, 1.0f,
+    1.0f, 0.0f
+  };
+};
+
   /******************************
    * Main
    ******************************/
 
 int main()
 {
-
-  /******************************
-   * Initialise GLFW
-   ******************************/
-  glfwInit();
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-  /******************************
-   * Create GLFW window
-   ******************************/
-
-  GLFWwindow* window = glfwCreateWindow(Screen_Width, Screen_Height, "title", nullptr, nullptr);
-  if (window == nullptr)
-  {
-    std::cout << "Failed to create GLFW window.\n";
-    glfwTerminate();
-    return -1;
-  }
+  GLFWwindow* window = Lyonesse::InitialiseWindow(1920, 1080, "wah");
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-  glfwSetCursorPosCallback(window, mouse_callback);
-  glfwSetMouseButtonCallback(window, mouse_button_callback);
+  // glfwSetCursorPosCallback(window, mouse_callback);
+  // glfwSetMouseButtonCallback(window, mouse_button_callback);
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
 
@@ -197,28 +193,21 @@ int main()
   ImGui_ImplOpenGL3_Init();
 
   //Load glad, all OpenGL function pointers
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+  if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
   {
     std::cout << "Failed to initialise GLAD.\n";
-    return -1;
   }
 
-  //Enable the depth buffer
   glEnable(GL_DEPTH_TEST);
-
-  //Default display mode
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-  //Wireframe mode
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   Cube testCube;
   Cube lightCube;
 
-  Yuru::Shared<Yuru::OpenGLShader> lightShader = Yuru::Shader::Create("../shaders/lightShader.vert"
+  Lyonesse::Shared<Lyonesse::OpenGLShader> lightShader = Lyonesse::Shader::Initialise("../shaders/lightShader.vert"
                                                                 , "../shaders/lightShader.frag");
 
-  Yuru::Shared<Yuru::OpenGLShader> lightSourceShader = Yuru::Shader::Create("../shaders/lightShader.vert"
+  Lyonesse::Shared<Lyonesse::OpenGLShader> lightSourceShader = Lyonesse::Shader::Initialise("../shaders/lightShader.vert"
                                                                             , "../shaders/lightSource.frag");
 
   //     // VBO - raw vertices  // VAO - holds VBOs   //EBO - for indices
@@ -264,8 +253,8 @@ int main()
   glm::vec3 diffuseLight { 0.5f, 0.5f, 0.5f };
   glm::vec3 specularLight { 1.0f, 1.0f, 1.0f };
 
-  Yuru::Texture::Generate("../resources/container2.png", 0);
-  Yuru::Texture::Generate("../resources/container2_specular.png", 1);
+  Lyonesse::Texture::Generate("../resources/container2.png", 0);
+  Lyonesse::Texture::Generate("../resources/container2_specular.png", 1);
 
   lightShader->Use();
   lightShader->UploadUniformInt("material.diffuse", 0);
@@ -283,6 +272,7 @@ int main()
     lastFrame = currentFrame;
 
     processInput(window);
+    // beeCam->ProcessInput(window, deltaTime);
 
     //Clear the framebuffer
     glClearColor(0.15f, 0.12f, 0.15f, 1.0f);
@@ -293,10 +283,9 @@ int main()
     ImGui::NewFrame();
 
     //Matrices
-    auto projection = glm::mat4(1.0f);
     lightShader->Use();
     lightShader->UploadUniformFloat3("lightPos", lightCube.offsetMod);
-    lightShader->UploadUniformFloat3("viewPos", beeCam.angles.cameraPos);
+    // lightShader->UploadUniformFloat3("viewPos", beeCam->angles.cameraPos);
 
     lightShader->UploadUniformFloat3("light.ambient", ambientLight);
     lightShader->UploadUniformFloat3("light.diffuse", diffuseLight);
@@ -305,10 +294,8 @@ int main()
 
     lightShader->UploadUniformFloat("material.shininess", shininess);
 
-    glm::mat4 view = beeCam.GetViewMatrix();
-    projection = glm::perspective(glm::radians(beeCam.FOV), 640.0f / 480.0f,0.1f, 100.0f);
-    lightShader->UploadUniformMat4("projection", projection);
-    lightShader->UploadUniformMat4("view", view);
+    lightShader->UploadUniformMat4("projection", beeCam->projection);
+    // lightShader->UploadUniformMat4("view", beeCam->view);
 
     auto model = glm::mat4(1.0f);
     model = translate(model, testCube.offsetMod);
@@ -322,10 +309,10 @@ int main()
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     lightSourceShader->Use();
-
-    lightSourceShader->UploadUniformMat4("view", view);
-    lightSourceShader->UploadUniformMat4("projection", projection);
+    // lightSourceShader->UploadUniformMat4("view", beeCam->view);
+    lightSourceShader->UploadUniformMat4("projection", beeCam->projection);
     lightSourceShader->UploadUniformFloat3("lightColour", lightColour);
+
     auto modelLight = glm::mat4(1.0f);
     modelLight = translate(modelLight, lightCube.offsetMod);
     modelLight = scale(modelLight, lightCube.sizeMod);

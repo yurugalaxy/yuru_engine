@@ -4,7 +4,7 @@
 #include <stb_image/stb_image.h>
 #include <iostream>
 
-namespace Yuru::Texture
+namespace Lyonesse::Texture
 {
   uint32_t Generate(const char * path, const int offset)
   {

@@ -4,9 +4,9 @@
 
 #include "camera_creative.hpp"
 
-namespace Yuru
+namespace Lyonesse
 {
-  CreativeCamera::CreativeCamera(const float screenWidth, const float screenHeight, float fov)
+  CreativeCamera::CreativeCamera(const float screenWidth, const float screenHeight, const float fov)
   {
     angles.cameraPos.z = 3.0f;
     angles.cameraFront.z = -1.0f;
@@ -15,6 +15,8 @@ namespace Yuru
     FOV = fov;
     mousepos.mouseX = screenWidth / 2.0f;
     mousepos.mouseY = screenHeight / 2.0f;
+    projection = glm::perspective(FOV, screenWidth / screenHeight, 0.1f, 100.0f);
+    UpdateView();
   }
 
   CreativeCamera::~CreativeCamera()
@@ -38,6 +40,7 @@ namespace Yuru
       angles.cameraPos.y += cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
       angles.cameraPos.y -= cameraSpeed;
+    UpdateView();
   }
 
   void CreativeCamera::ProcessMouse(const double xPos, const double yPos)
@@ -76,10 +79,11 @@ namespace Yuru
     front.x = cos(glm::radians(angles.yaw)) * cos(glm::radians(angles.pitch));
     front.y = sin(glm::radians(angles.pitch));
     front.z = sin(glm::radians(angles.yaw)) * cos(glm::radians(angles.pitch));
-    angles.cameraFront = glm::normalize(front);
+    angles.cameraFront = normalize(front);
+    UpdateView();
   }
 
-  void CreativeCamera::ProcessMouseButtons(GLFWwindow* window, int button, int action, int mods)
+  void CreativeCamera::ProcessMouseButtons(GLFWwindow* window, const int button, const int action)
   {
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
     {
@@ -94,8 +98,8 @@ namespace Yuru
     }
   }
 
-  glm::mat4 CreativeCamera::GetViewMatrix() const
+  void CreativeCamera::UpdateView()
   {
-    return lookAt(angles.cameraPos, angles.cameraPos + angles.cameraFront, angles.cameraUp);
+    view = lookAt(angles.cameraPos, angles.cameraPos + angles.cameraFront, angles.cameraUp);
   }
 }

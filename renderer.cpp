@@ -1,6 +1,6 @@
 #include "renderer.hpp"
 
-namespace Yuru
+namespace Lyonesse
 {
   RenderAPI Renderer::s_API = RenderAPI::OpenGL;
 }

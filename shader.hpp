@@ -6,14 +6,14 @@
 
 #include "base.hpp"
 
-namespace Yuru
+namespace Lyonesse
 {
   class OpenGLShader;
 
   class Shader
   {
   public:
-    static Shared<OpenGLShader> Create(const char* vertexPath, const char* fragmentPath);
+    static Shared<OpenGLShader> Initialise(const char* vertexPath, const char* fragmentPath);
 
     virtual ~Shader() = default;
     virtual void Use() const = 0;

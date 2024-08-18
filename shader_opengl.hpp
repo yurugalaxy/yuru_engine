@@ -8,7 +8,7 @@
 
 #include "shader.hpp"
 
-namespace Yuru
+namespace Lyonesse
 {
   class OpenGLShader : public Shader
   {
